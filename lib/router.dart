@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:podd_app/locator.dart';
 import 'package:podd_app/services/auth_service.dart';
@@ -21,6 +22,7 @@ import 'package:podd_app/ui/report/followup_report_view.dart';
 import 'package:podd_app/ui/report/incident_report_view.dart';
 import 'package:podd_app/ui/report/report_form_view.dart';
 import 'package:podd_app/ui/report_type/report_type_view.dart';
+import 'package:podd_app/ui/vbs/record_view.dart';
 import 'package:stacked/stacked.dart';
 
 class AppViewModel extends ReactiveViewModel {
@@ -70,7 +72,7 @@ class OhtkRouter {
         // if the user is logged in but still on the login page, send them to
         // the home page (shell route) on first view, default to 'reports'
         if (loggingIn) {
-          return '/reports';
+          return '/record';
         }
 
         // no need to redirect at all
@@ -81,6 +83,36 @@ class OhtkRouter {
           path: '/login',
           builder: (BuildContext context, GoRouterState state) =>
               const LoginView(),
+        ),
+        GoRoute(
+          path: '/record',
+          builder: (BuildContext context, GoRouterState state) =>
+              const RecordView(),
+        ),
+
+        GoRoute(
+          path: '/myprofile',
+          builder: (context, state) => Scaffold(
+              appBar: AppBar(
+                title: Text("profile"),
+              ),
+              body: ProfileView()),
+          routes: [
+            GoRoute(
+              path: 'form',
+              parentNavigatorKey: _rootNavigatorKey,
+              builder: (context, state) {
+                return const ProfileFormView();
+              },
+            ),
+            GoRoute(
+              path: 'password',
+              parentNavigatorKey: _rootNavigatorKey,
+              builder: (context, state) {
+                return const ChangePasswordView();
+              },
+            ),
+          ],
         ),
 
         /// Application shell
