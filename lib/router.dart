@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:podd_app/locator.dart';
 import 'package:podd_app/services/auth_service.dart';
@@ -21,6 +22,7 @@ import 'package:podd_app/ui/report/followup_report_view.dart';
 import 'package:podd_app/ui/report/incident_report_view.dart';
 import 'package:podd_app/ui/report/report_form_view.dart';
 import 'package:podd_app/ui/report_type/report_type_view.dart';
+import 'package:podd_app/ui/vbs/record_view.dart';
 import 'package:stacked/stacked.dart';
 
 class AppViewModel extends ReactiveViewModel {
@@ -70,7 +72,7 @@ class OhtkRouter {
         // if the user is logged in but still on the login page, send them to
         // the home page (shell route) on first view, default to 'reports'
         if (loggingIn) {
-          return '/reports';
+          return '/record';
         }
 
         // no need to redirect at all
@@ -82,163 +84,193 @@ class OhtkRouter {
           builder: (BuildContext context, GoRouterState state) =>
               const LoginView(),
         ),
+        GoRoute(
+          path: '/record',
+          builder: (BuildContext context, GoRouterState state) =>
+              const RecordView(),
+        ),
 
-        /// Application shell
-        ShellRoute(
-          navigatorKey: _shellNavigatorKey,
-          builder: (BuildContext context, GoRouterState state, Widget child) {
-            return HomeView(child: child);
-          },
-          routes: <RouteBase>[
+        GoRoute(
+          path: '/myprofile',
+          builder: (context, state) => Scaffold(
+              appBar: AppBar(
+                title: Text("profile_xxx"),
+              ),
+              body: ProfileView()),
+          routes: [
             GoRoute(
-              path: '/reports',
-              builder: (context, state) => ReportHomeView(),
-              routes: <RouteBase>[
-                GoRoute(
-                  name: 'incidentDetail',
-                  path: 'incident/:incidentId',
-                  parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) {
-                    var incidentId = state.queryParameters['incidentId'];
-                    return IncidentReportView(id: incidentId!);
-                  },
-                  routes: [
-                    GoRoute(
-                      name: 'incidentFollowup',
-                      path: 'followup/:followupId',
-                      parentNavigatorKey: _rootNavigatorKey,
-                      builder: (context, state) {
-                        var followupId = state.queryParameters['followupId'];
-                        return FollowupReportView(id: followupId!);
-                      },
-                    ),
-                  ],
-                ),
-                GoRoute(
-                  name: 'reportTypes',
-                  path: 'types',
-                  parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) => ReportTypeView(),
-                ),
-                GoRoute(
-                  name: 'reportForm',
-                  path: 'types/:reportTypeId/form',
-                  parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) {
-                    var reportTypeId = state.queryParameters['reportTypeId'];
-                    var testFlag = state.queryParameters['test'] == '1';
-                    return ReportFormView(testFlag, reportTypeId!);
-                  },
-                ),
-                GoRoute(
-                  name: 'followupReportForm',
-                  path: 'incident/:incidentId/types/:reportTypeId/form',
-                  parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) {
-                    var incidentId = state.queryParameters['incidentId'];
-                    var reportTypeId = state.queryParameters['reportTypeId'];
-                    return FollowupReportFormView(
-                      incidentId: incidentId!,
-                      reportTypeId: reportTypeId!,
-                    );
-                  },
-                ),
-              ],
+              path: 'form',
+              parentNavigatorKey: _rootNavigatorKey,
+              builder: (context, state) {
+                return const ProfileFormView();
+              },
             ),
             GoRoute(
-              path: '/observations',
-              builder: (context, state) => const ObservationHomeView(),
-              routes: [
-                GoRoute(
-                  name: 'observationSubjects',
-                  path: ':definitionId/subjects',
-                  parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) {
-                    var definitionId = state.queryParameters['definitionId'];
-                    return ObservationView(definitionId!);
-                  },
-                  routes: [
-                    GoRoute(
-                      name: 'observationSubjectForm',
-                      path: 'form',
-                      parentNavigatorKey: _rootNavigatorKey,
-                      builder: (context, state) {
-                        var definitionId =
-                            state.queryParameters['definitionId'];
-                        return ObservationSubjectFormView(
-                          definitionId: definitionId!,
-                        );
-                      },
-                    ),
-                    GoRoute(
-                      name: 'observationSubjectDetail',
-                      path: ':subjectId',
-                      parentNavigatorKey: _rootNavigatorKey,
-                      builder: (context, state) {
-                        var definitionId =
-                            state.queryParameters['definitionId'];
-                        var subjectId = state.queryParameters['subjectId'];
-                        return ObservationSubjectView(
-                          definitionId: definitionId!,
-                          subjectId: subjectId!,
-                        );
-                      },
-                      routes: [
-                        GoRoute(
-                          name: 'observationMonitoringForm',
-                          path:
-                              'monitoringDefinition/:monitoringDefinitionId/form',
-                          parentNavigatorKey: _rootNavigatorKey,
-                          builder: (context, state) {
-                            var subjectId = state.queryParameters['subjectId'];
-                            var monitoringDefinitionId =
-                                state.queryParameters['monitoringDefinitionId'];
-                            return ObservationMonitoringRecordFormView(
-                              monitoringDefinitionId: monitoringDefinitionId!,
-                              subjectId: subjectId!,
-                            );
-                          },
-                        ),
-                        GoRoute(
-                          name: 'observationMonitoringDetail',
-                          path: 'monitoringRecords/:monitoringId',
-                          parentNavigatorKey: _rootNavigatorKey,
-                          builder: (context, state) {
-                            var monitoringId =
-                                state.queryParameters['monitoringId'];
-                            return ObservationMonitoringRecordView(
-                              monitoringRecordId: monitoringId!,
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            GoRoute(
-              path: '/profile',
-              builder: (context, state) => const ProfileView(),
-              routes: [
-                GoRoute(
-                  path: 'form',
-                  parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) {
-                    return const ProfileFormView();
-                  },
-                ),
-                GoRoute(
-                  path: 'password',
-                  parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) {
-                    return const ChangePasswordView();
-                  },
-                ),
-              ],
+              path: 'password',
+              parentNavigatorKey: _rootNavigatorKey,
+              builder: (context, state) {
+                return const ChangePasswordView();
+              },
             ),
           ],
-        )
+        ),
+        
+        /// Application shell
+        // ShellRoute(
+        //   navigatorKey: _shellNavigatorKey,
+        //   builder: (BuildContext context, GoRouterState state, Widget child) {
+        //     return HomeView(child: child);
+        //   },
+        //   routes: <RouteBase>[
+        //     GoRoute(
+        //       path: '/reports',
+        //       builder: (context, state) => ReportHomeView(),
+        //       routes: <RouteBase>[
+        //         GoRoute(
+        //           name: 'incidentDetail',
+        //           path: 'incident/:incidentId',
+        //           parentNavigatorKey: _rootNavigatorKey,
+        //           builder: (context, state) {
+        //             var incidentId = state.queryParameters['incidentId'];
+        //             return IncidentReportView(id: incidentId!);
+        //           },
+        //           routes: [
+        //             GoRoute(
+        //               name: 'incidentFollowup',
+        //               path: 'followup/:followupId',
+        //               parentNavigatorKey: _rootNavigatorKey,
+        //               builder: (context, state) {
+        //                 var followupId = state.queryParameters['followupId'];
+        //                 return FollowupReportView(id: followupId!);
+        //               },
+        //             ),
+        //           ],
+        //         ),
+        //         GoRoute(
+        //           name: 'reportTypes',
+        //           path: 'types',
+        //           parentNavigatorKey: _rootNavigatorKey,
+        //           builder: (context, state) => ReportTypeView(),
+        //         ),
+        //         GoRoute(
+        //           name: 'reportForm',
+        //           path: 'types/:reportTypeId/form',
+        //           parentNavigatorKey: _rootNavigatorKey,
+        //           builder: (context, state) {
+        //             var reportTypeId = state.queryParameters['reportTypeId'];
+        //             var testFlag = state.queryParameters['test'] == '1';
+        //             return ReportFormView(testFlag, reportTypeId!);
+        //           },
+        //         ),
+        //         GoRoute(
+        //           name: 'followupReportForm',
+        //           path: 'incident/:incidentId/types/:reportTypeId/form',
+        //           parentNavigatorKey: _rootNavigatorKey,
+        //           builder: (context, state) {
+        //             var incidentId = state.queryParameters['incidentId'];
+        //             var reportTypeId = state.queryParameters['reportTypeId'];
+        //             return FollowupReportFormView(
+        //               incidentId: incidentId!,
+        //               reportTypeId: reportTypeId!,
+        //             );
+        //           },
+        //         ),
+        //       ],
+        //     ),
+        //     GoRoute(
+        //       path: '/observations',
+        //       builder: (context, state) => const ObservationHomeView(),
+        //       routes: [
+        //         GoRoute(
+        //           name: 'observationSubjects',
+        //           path: ':definitionId/subjects',
+        //           parentNavigatorKey: _rootNavigatorKey,
+        //           builder: (context, state) {
+        //             var definitionId = state.queryParameters['definitionId'];
+        //             return ObservationView(definitionId!);
+        //           },
+        //           routes: [
+        //             GoRoute(
+        //               name: 'observationSubjectForm',
+        //               path: 'form',
+        //               parentNavigatorKey: _rootNavigatorKey,
+        //               builder: (context, state) {
+        //                 var definitionId =
+        //                     state.queryParameters['definitionId'];
+        //                 return ObservationSubjectFormView(
+        //                   definitionId: definitionId!,
+        //                 );
+        //               },
+        //             ),
+        //             GoRoute(
+        //               name: 'observationSubjectDetail',
+        //               path: ':subjectId',
+        //               parentNavigatorKey: _rootNavigatorKey,
+        //               builder: (context, state) {
+        //                 var definitionId =
+        //                     state.queryParameters['definitionId'];
+        //                 var subjectId = state.queryParameters['subjectId'];
+        //                 return ObservationSubjectView(
+        //                   definitionId: definitionId!,
+        //                   subjectId: subjectId!,
+        //                 );
+        //               },
+        //               routes: [
+        //                 GoRoute(
+        //                   name: 'observationMonitoringForm',
+        //                   path:
+        //                       'monitoringDefinition/:monitoringDefinitionId/form',
+        //                   parentNavigatorKey: _rootNavigatorKey,
+        //                   builder: (context, state) {
+        //                     var subjectId = state.queryParameters['subjectId'];
+        //                     var monitoringDefinitionId =
+        //                         state.queryParameters['monitoringDefinitionId'];
+        //                     return ObservationMonitoringRecordFormView(
+        //                       monitoringDefinitionId: monitoringDefinitionId!,
+        //                       subjectId: subjectId!,
+        //                     );
+        //                   },
+        //                 ),
+        //                 GoRoute(
+        //                   name: 'observationMonitoringDetail',
+        //                   path: 'monitoringRecords/:monitoringId',
+        //                   parentNavigatorKey: _rootNavigatorKey,
+        //                   builder: (context, state) {
+        //                     var monitoringId =
+        //                         state.queryParameters['monitoringId'];
+        //                     return ObservationMonitoringRecordView(
+        //                       monitoringRecordId: monitoringId!,
+        //                     );
+        //                   },
+        //                 ),
+        //               ],
+        //             ),
+        //           ],
+        //         ),
+        //       ],
+        //     ),
+        //     GoRoute(
+        //       path: '/profile',
+        //       builder: (context, state) => const ProfileView(),
+        //       routes: [
+        //         GoRoute(
+        //           path: 'form',
+        //           parentNavigatorKey: _rootNavigatorKey,
+        //           builder: (context, state) {
+        //             return const ProfileFormView();
+        //           },
+        //         ),
+        //         GoRoute(
+        //           path: 'password',
+        //           parentNavigatorKey: _rootNavigatorKey,
+        //           builder: (context, state) {
+        //             return const ChangePasswordView();
+        //           },
+        //         ),
+        //       ],
+        //     ),
+        //   ],
+        // )
       ],
     );
   }

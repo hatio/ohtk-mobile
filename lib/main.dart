@@ -127,7 +127,7 @@ class MyApp extends StatelessWidget {
                     },
                     theme: locator<AppTheme>().themeData,
                     routerConfig:
-                        OhtkRouter().getRouter('/reports', appViewModel),
+                        OhtkRouter().getRouter('/record', appViewModel),
                   ),
                 );
               },
