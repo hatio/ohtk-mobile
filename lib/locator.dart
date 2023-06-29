@@ -31,6 +31,7 @@ import 'package:podd_app/services/report_service.dart';
 import 'package:podd_app/services/report_type_service.dart';
 import 'package:podd_app/services/secure_storage_service.dart';
 import 'package:podd_app/app_theme.dart';
+import 'package:podd_app/services/vbs_audio_service.dart';
 import 'package:podd_app/ui/home/all_reports_view_model.dart';
 import 'package:podd_app/ui/home/my_reports_view_model.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -73,6 +74,13 @@ void setupLocator(String environment) {
     locator.unregister<ConfigService>();
   }
   locator.registerSingleton<ConfigService>(ConfigService());
+
+  if (locator.isRegistered<IVbsAudioService>()) {
+    locator.unregister<IVbsAudioService>();
+  }
+  locator.registerSingletonAsync<IVbsAudioService>(() async {
+    return VbsAudioService();
+  });
 
   if (locator.isRegistered<ISecureStorageService>()) {
     locator.unregister<ISecureStorageService>();
