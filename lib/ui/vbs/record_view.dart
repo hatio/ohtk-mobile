@@ -13,7 +13,7 @@ class RecordView extends StatelessWidget {
       viewModelBuilder: () => RecordViewModel(),
       builder: (context, model, child) => Scaffold(
         appBar: AppBar(
-          title: const Text('Record'),
+          title: const Text('Sensing module'),
         ),
         body: Center(
           child: Column(
@@ -23,6 +23,9 @@ class RecordView extends StatelessWidget {
               if (!model.isRecording)
                 ElevatedButton(
                   onPressed: () {
+                    // start recording with defaults:
+                    // RecordConfig({AudioEncoder encoder = AudioEncoder.aacLc, int bitRate = 128000, int sampleRate = 44100, int numChannels = 2, InputDevice? device, bool autoGain = false, bool echoCancel = false, bool noiseSuppress = false})
+
                     model.start();
                   },
                   child: const Text('Start recording'),
@@ -33,9 +36,12 @@ class RecordView extends StatelessWidget {
               if (model.isRecording)
                 ElevatedButton(
                   onPressed: () {
+                    
+                  },
+                  onLongPress: () {
                     model.stop();
                   },
-                  child: const Text('Stop recording'),                
+                  child: const Text('Long press to stop recording'),                
                   style: ElevatedButton.styleFrom(
                   primary: const Color.fromARGB(255, 235, 12, 12), // Background color
                   )),
@@ -68,12 +74,21 @@ class RecordView extends StatelessWidget {
                 ),
               ),
 
-              // ElevatedButton(
-              //   onPressed: () {
-              //     GoRouter.of(context).push('/myprofile');
-              //   },
-              //   child: const Text('Profile'),
-              // ),
+              ElevatedButton(
+                onPressed: () {
+                  GoRouter.of(context).push('/myprofile');
+                },
+                child: const Text('Profile'),
+              ),
+
+              ElevatedButton(
+                onPressed: () {
+                  GoRouter.of(context).push('/enroll');
+                },
+                child: const Text('Enroll'),
+              ),
+
+
             ],
           ),
         ),
