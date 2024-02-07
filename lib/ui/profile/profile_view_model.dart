@@ -33,7 +33,7 @@ class ProfileViewModel extends BaseViewModel {
     final userProfile = authService.userProfile;
     final prefs = await SharedPreferences.getInstance();
 
-    if (userProfile != null) {
+    if (userProfile != null) {     
       firstName = userProfile.firstName;
       lastName = userProfile.lastName;
       telephone = userProfile.telephone;

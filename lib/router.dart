@@ -22,8 +22,10 @@ import 'package:podd_app/ui/report/followup_report_view.dart';
 import 'package:podd_app/ui/report/incident_report_view.dart';
 import 'package:podd_app/ui/report/report_form_view.dart';
 import 'package:podd_app/ui/report_type/report_type_view.dart';
-import 'package:podd_app/ui/vbs/record_view.dart';
 import 'package:stacked/stacked.dart';
+// vbs
+import 'package:podd_app/ui/vbs/record_view.dart';
+import 'package:podd_app/ui/vbs/qr_read/qr_read_view.dart';
 
 class AppViewModel extends ReactiveViewModel {
   final IAuthService authService = locator<IAuthService>();
@@ -62,6 +64,7 @@ class OhtkRouter {
       refreshListenable: viewModel,
       // redirect to the login page if the user is not logged in
       redirect: (BuildContext context, GoRouterState state) {
+        
         // if the user is not logged in, they need to login
         final bool loggedIn = viewModel.isLogin ?? false;
         final bool loggingIn = state.location == '/login';
@@ -72,6 +75,7 @@ class OhtkRouter {
         // if the user is logged in but still on the login page, send them to
         // the home page (shell route) on first view, default to 'reports'
         if (loggingIn) {
+          print('ohhhhh');
           return '/record';
         }
 
@@ -89,6 +93,12 @@ class OhtkRouter {
           builder: (BuildContext context, GoRouterState state) =>
               const RecordView(),
         ),
+        GoRoute(
+          path: '/enroll',
+          builder: (BuildContext context, GoRouterState state) =>
+              const QrReadView(),
+        ),
+
 
         GoRoute(
           path: '/myprofile',

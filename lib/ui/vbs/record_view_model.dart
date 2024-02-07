@@ -13,7 +13,11 @@ import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import 'package:fftea/fftea.dart';
 import 'dart:typed_data';
-// import "dart:io";
+// package to play audio
+import 'package:audioplayers/audioplayers.dart';
+import 'dart:math';
+
+
 
 
 class RecordViewModel extends BaseViewModel {
@@ -27,6 +31,7 @@ class RecordViewModel extends BaseViewModel {
   String currentReportId = "";
   bool isRecording = false;
   final _audioRecorder = Record();
+  final player = AudioPlayer();
 
   late Directory directory;
   String recordingDir = "/recording/";
@@ -106,26 +111,73 @@ class RecordViewModel extends BaseViewModel {
     // convert to 16-bit per sample
     var listInt = bytes.buffer.asUint16List();
     List<double> listFloat = listInt.map((i) => i.toDouble()).toList();
+    print(listFloat);
+    print(listFloat.length);
 
-    // run STFT
-    int chunkSize = 4096;
-    final stft = STFT(chunkSize, Window.hanning(chunkSize));
-    var spectrogram = [];
-    stft.run(listFloat, (freq) {
-      spectrogram.add(freq.discardConjugates().magnitudes());
-    });
-    
-    // index of FFT corresponding to 300Hz
-    int iFilter = (300 * spectrogram[0].length / 44100).floor().toInt();
-    
-    // filter out freq <= 300Hz
-    for (var i = 0; i < spectrogram.length; i++ ){
-      spectrogram[i].setRange(0, iFilter, List.filled(iFilter + 1, 0.0));
-    }
-    print(spectrogram);
-    print(spectrogram.length);
-    print(spectrogram[0].length);
 
+    // // run STFT .......
+    // int chunkSize = 4096;
+    // final stft = STFT(chunkSize, Window.hanning(chunkSize));
+    // var spectrogram = [];
+    // stft.run(listFloat, (freq) {
+    //   // spectrogram.add(freq.discardConjugates().magnitudes());
+    //   spectrogram.add(freq.discardConjugates());
+    // });
+    
+    // // index of FFT corresponding to 300Hz
+    // int iFilter = stft.indexOfFrequency(300, 44100).floor().toInt();
+    
+    // // set values at freq <= 300Hz to zero
+    // final fft = FFT(spectrogram[0].length);
+    // for (var i = 0; i < spectrogram.length; i++ ){
+    //   spectrogram[i].setRange(0, iFilter, Float64x2List(iFilter + 1));
+    //   // fft.inPlaceInverseFft(spectrogram[i].createConjugates());
+    //   Float64x2List.fromList(spectrogram[i]).createConjugates(spectrogram[i] * 2)
+    // }
+    // .....................
+    
+
+
+
+    final fft = FFT(listFloat.length);
+    final freq = fft.realFft(listFloat);
+
+    List<int> listFiltered = fft.realInverseFft(freq).map((i) => i.toInt()).toList();
+    // List<int> listFiltered = listFloat.map((i) => i.toInt()).toList();    
+    await originalFile.writeAsBytes(
+      Uint8List.view(Uint16List.fromList(listFiltered).buffer)  
+    );
+    bytes = await originalFile.readAsBytes();
+    
+    // print(Uint16List.sublistView(fft.realInverseFft(freq)));
+
+    // print(Uint16List.sublistView(fft.realInverseFft(freq.discardConjugates().createConjugates(freq.length))));
+
+    // // test converting back and forth
+    // final fft = FFT(spectrogram[0].length);
+    // for (var i = 0; i < spectrogram.length; i++ ){
+    //   fft.inPlaceInverseFft(spectrogram[i].createConjugates(spectrogram[i].length * 2));
+    // }
+    // print(spectrogram);
+    // print(spectrogram.length);
+    // print(spectrogram[0].length);
+    
+    
+    
+    
+    
+    
+    // // .... keep below
+    
+    // // convert back to bytes for playback
+    // List<int> listFiltered = listFloat.map((i) => i.toInt()).toList();       
+    
+    // // play recording
+    await player.play(BytesSource(bytes));
+    // await player.play(BytesSource(Uint8List.view(Uint16List.fromList(listFiltered).buffer)));
+    // await player.play(DeviceFileSource(customPath));
+    
+    
 
     
     var saveFile = await fileService.newFile(
@@ -138,21 +190,21 @@ class RecordViewModel extends BaseViewModel {
     );
     
     var reportFile = ReportFile(uuid, currentReportId, uuid, customPath, extStr, 'audio/m4a');
-    // save to local DB
-    await fileService.saveFile(reportFile);
+    // // save to local DB
+    // await fileService.saveFile(reportFile);
     
-    // submit to online server
-    await reportService.submit(Report(
-      id: uuid,
-      data: {
-        "houseId": "2",
-        "file": {uuid: "$uuid$extStr"}
-      },
-      incidentDate: DateTime.now(),
-      reportTypeId: "343eaa06-8589-42b2-a621-5b969ae3be70",
-      incidentInAuthority: true,
-      testFlag: false,
-    ));
+    // // submit to online server
+    // await reportService.submit(Report(
+    //   id: uuid,
+    //   data: {
+    //     "houseId": "2",
+    //     "file": {uuid: "$uuid$extStr"}
+    //   },
+    //   incidentDate: DateTime.now(),
+    //   reportTypeId: "343eaa06-8589-42b2-a621-5b969ae3be70",
+    //   incidentInAuthority: true,
+    //   testFlag: false,
+    // ));
     
     setBusy(false);
   }
