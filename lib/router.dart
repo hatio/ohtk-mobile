@@ -21,6 +21,11 @@ import 'package:podd_app/ui/report_type/report_type_view.dart';
 
 import 'locator.dart';
 
+// vbs
+import 'package:podd_app/ui/vbs/record_view.dart';
+import 'package:podd_app/ui/vbs/qr_read/qr_read_view.dart';
+
+
 class OhtkRouter {
   static final OhtkRouter _instance = OhtkRouter._internal();
 
@@ -65,11 +70,13 @@ class OhtkRouter {
         // if the user is logged in but still on the login page, send them to
         // the home page (shell route) on first view, default to 'reports'
         if (loggingIn) {
-          return initialLocation;
+          // return initialLocation;
+          return '/record';
         }
 
         // no need to redirect at all
-        return null;
+        return '/record';
+        // return null;
       },
       routes: <RouteBase>[
         GoRoute(
@@ -77,190 +84,195 @@ class OhtkRouter {
           builder: (BuildContext context, GoRouterState state) =>
               const LoginView(),
         ),
+        GoRoute(
+          path: '/record',
+          builder: (BuildContext context, GoRouterState state) =>
+              const RecordView(),
+        ),
 
-        /// Application shell
-        ShellRoute(
-          navigatorKey: _shellNavigatorKey,
-          builder: (BuildContext context, GoRouterState state, Widget child) {
-            return HomeView(child: child);
-          },
-          routes: <RouteBase>[
-            GoRoute(
-              path: '/reports',
-              pageBuilder: (context, state) => CustomTransitionPage<void>(
-                key: state.pageKey,
-                child: ReportHomeView(),
-                transitionsBuilder:
-                    (context, animation, secondaryAnimation, child) {
-                  return SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(-1, 0),
-                      end: Offset.zero,
-                    ).animate(animation),
-                    child: child,
-                  );
-                },
-              ),
-              routes: <RouteBase>[
-                GoRoute(
-                  name: incidentDetail,
-                  path: 'incident/:incidentId',
-                  parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) {
-                    var incidentId = state.pathParameters['incidentId'];
-                    return IncidentReportView(id: incidentId!);
-                  },
-                  routes: [
-                    GoRoute(
-                      name: incidentFollowup,
-                      path: 'followup/:followupId',
-                      parentNavigatorKey: _rootNavigatorKey,
-                      builder: (context, state) {
-                        var followupId = state.pathParameters['followupId'];
-                        return FollowupReportView(id: followupId!);
-                      },
-                    ),
-                  ],
-                ),
-                GoRoute(
-                  name: reportTypes,
-                  path: 'types',
-                  parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) => ReportTypeView(),
-                ),
-                GoRoute(
-                  name: reportForm,
-                  path: 'types/:reportTypeId/form',
-                  parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) {
-                    var reportTypeId = state.pathParameters['reportTypeId'];
-                    var testFlag = state.queryParameters['test'] == '1';
-                    return ReportFormView(testFlag, reportTypeId!);
-                  },
-                ),
-                GoRoute(
-                  name: followupReportForm,
-                  path: 'incident/:incidentId/types/:reportTypeId/form',
-                  parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) {
-                    var incidentId = state.pathParameters['incidentId'];
-                    var reportTypeId = state.pathParameters['reportTypeId'];
-                    return FollowupReportFormView(
-                      incidentId: incidentId!,
-                      reportTypeId: reportTypeId!,
-                    );
-                  },
-                ),
-              ],
-            ),
-            GoRoute(
-              path: '/observations',
-              pageBuilder: (context, state) => NoTransitionPage<void>(
-                key: state.pageKey,
-                child: const ObservationHomeView(),
-              ),
-              routes: [
-                GoRoute(
-                  name: observationSubjects,
-                  path: ':definitionId/subjects',
-                  parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) {
-                    var definitionId = state.pathParameters['definitionId'];
-                    return ObservationView(definitionId!);
-                  },
-                  routes: [
-                    GoRoute(
-                      name: observationSubjectForm,
-                      path: 'form',
-                      parentNavigatorKey: _rootNavigatorKey,
-                      builder: (context, state) {
-                        var definitionId = state.pathParameters['definitionId'];
-                        return ObservationSubjectFormView(
-                          definitionId: definitionId!,
-                        );
-                      },
-                    ),
-                    GoRoute(
-                      name: observationSubjectDetail,
-                      path: ':subjectId',
-                      parentNavigatorKey: _rootNavigatorKey,
-                      builder: (context, state) {
-                        var definitionId = state.pathParameters['definitionId'];
-                        var subjectId = state.pathParameters['subjectId'];
-                        return ObservationSubjectView(
-                          definitionId: definitionId!,
-                          subjectId: subjectId!,
-                        );
-                      },
-                      routes: [
-                        GoRoute(
-                          name: observationMonitoringForm,
-                          path:
-                              'monitoringDefinition/:monitoringDefinitionId/form',
-                          parentNavigatorKey: _rootNavigatorKey,
-                          builder: (context, state) {
-                            var subjectId = state.pathParameters['subjectId'];
-                            var monitoringDefinitionId =
-                                state.pathParameters['monitoringDefinitionId'];
-                            return ObservationMonitoringRecordFormView(
-                              monitoringDefinitionId: monitoringDefinitionId!,
-                              subjectId: subjectId!,
-                            );
-                          },
-                        ),
-                        GoRoute(
-                          name: observationMonitoringDetail,
-                          path: 'monitoringRecords/:monitoringId',
-                          parentNavigatorKey: _rootNavigatorKey,
-                          builder: (context, state) {
-                            var monitoringId =
-                                state.pathParameters['monitoringId'];
-                            return ObservationMonitoringRecordView(
-                              monitoringRecordId: monitoringId!,
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            GoRoute(
-              path: '/profile',
-              pageBuilder: (context, state) => CustomTransitionPage<void>(
-                key: state.pageKey,
-                child: const ProfileView(),
-                transitionsBuilder:
-                    (context, animation, secondaryAnimation, child) {
-                  return SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(1, 0),
-                      end: Offset.zero,
-                    ).animate(animation),
-                    child: child,
-                  );
-                },
-              ),
-              routes: [
-                GoRoute(
-                  path: 'form',
-                  parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) {
-                    return const ProfileFormView();
-                  },
-                ),
-                GoRoute(
-                  path: 'password',
-                  parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) {
-                    return const ChangePasswordView();
-                  },
-                ),
-              ],
-            ),
-          ],
-        )
+        // /// Application shell
+        // ShellRoute(
+        //   navigatorKey: _shellNavigatorKey,
+        //   builder: (BuildContext context, GoRouterState state, Widget child) {
+        //     return HomeView(child: child);
+        //   },
+        //   routes: <RouteBase>[
+        //     GoRoute(
+        //       path: '/reports',
+        //       pageBuilder: (context, state) => CustomTransitionPage<void>(
+        //         key: state.pageKey,
+        //         child: ReportHomeView(),
+        //         transitionsBuilder:
+        //             (context, animation, secondaryAnimation, child) {
+        //           return SlideTransition(
+        //             position: Tween<Offset>(
+        //               begin: const Offset(-1, 0),
+        //               end: Offset.zero,
+        //             ).animate(animation),
+        //             child: child,
+        //           );
+        //         },
+        //       ),
+        //       routes: <RouteBase>[
+        //         GoRoute(
+        //           name: incidentDetail,
+        //           path: 'incident/:incidentId',
+        //           parentNavigatorKey: _rootNavigatorKey,
+        //           builder: (context, state) {
+        //             var incidentId = state.pathParameters['incidentId'];
+        //             return IncidentReportView(id: incidentId!);
+        //           },
+        //           routes: [
+        //             GoRoute(
+        //               name: incidentFollowup,
+        //               path: 'followup/:followupId',
+        //               parentNavigatorKey: _rootNavigatorKey,
+        //               builder: (context, state) {
+        //                 var followupId = state.pathParameters['followupId'];
+        //                 return FollowupReportView(id: followupId!);
+        //               },
+        //             ),
+        //           ],
+        //         ),
+        //         GoRoute(
+        //           name: reportTypes,
+        //           path: 'types',
+        //           parentNavigatorKey: _rootNavigatorKey,
+        //           builder: (context, state) => ReportTypeView(),
+        //         ),
+        //         GoRoute(
+        //           name: reportForm,
+        //           path: 'types/:reportTypeId/form',
+        //           parentNavigatorKey: _rootNavigatorKey,
+        //           builder: (context, state) {
+        //             var reportTypeId = state.pathParameters['reportTypeId'];
+        //             var testFlag = state.queryParameters['test'] == '1';
+        //             return ReportFormView(testFlag, reportTypeId!);
+        //           },
+        //         ),
+        //         GoRoute(
+        //           name: followupReportForm,
+        //           path: 'incident/:incidentId/types/:reportTypeId/form',
+        //           parentNavigatorKey: _rootNavigatorKey,
+        //           builder: (context, state) {
+        //             var incidentId = state.pathParameters['incidentId'];
+        //             var reportTypeId = state.pathParameters['reportTypeId'];
+        //             return FollowupReportFormView(
+        //               incidentId: incidentId!,
+        //               reportTypeId: reportTypeId!,
+        //             );
+        //           },
+        //         ),
+        //       ],
+        //     ),
+        //     GoRoute(
+        //       path: '/observations',
+        //       pageBuilder: (context, state) => NoTransitionPage<void>(
+        //         key: state.pageKey,
+        //         child: const ObservationHomeView(),
+        //       ),
+        //       routes: [
+        //         GoRoute(
+        //           name: observationSubjects,
+        //           path: ':definitionId/subjects',
+        //           parentNavigatorKey: _rootNavigatorKey,
+        //           builder: (context, state) {
+        //             var definitionId = state.pathParameters['definitionId'];
+        //             return ObservationView(definitionId!);
+        //           },
+        //           routes: [
+        //             GoRoute(
+        //               name: observationSubjectForm,
+        //               path: 'form',
+        //               parentNavigatorKey: _rootNavigatorKey,
+        //               builder: (context, state) {
+        //                 var definitionId = state.pathParameters['definitionId'];
+        //                 return ObservationSubjectFormView(
+        //                   definitionId: definitionId!,
+        //                 );
+        //               },
+        //             ),
+        //             GoRoute(
+        //               name: observationSubjectDetail,
+        //               path: ':subjectId',
+        //               parentNavigatorKey: _rootNavigatorKey,
+        //               builder: (context, state) {
+        //                 var definitionId = state.pathParameters['definitionId'];
+        //                 var subjectId = state.pathParameters['subjectId'];
+        //                 return ObservationSubjectView(
+        //                   definitionId: definitionId!,
+        //                   subjectId: subjectId!,
+        //                 );
+        //               },
+        //               routes: [
+        //                 GoRoute(
+        //                   name: observationMonitoringForm,
+        //                   path:
+        //                       'monitoringDefinition/:monitoringDefinitionId/form',
+        //                   parentNavigatorKey: _rootNavigatorKey,
+        //                   builder: (context, state) {
+        //                     var subjectId = state.pathParameters['subjectId'];
+        //                     var monitoringDefinitionId =
+        //                         state.pathParameters['monitoringDefinitionId'];
+        //                     return ObservationMonitoringRecordFormView(
+        //                       monitoringDefinitionId: monitoringDefinitionId!,
+        //                       subjectId: subjectId!,
+        //                     );
+        //                   },
+        //                 ),
+        //                 GoRoute(
+        //                   name: observationMonitoringDetail,
+        //                   path: 'monitoringRecords/:monitoringId',
+        //                   parentNavigatorKey: _rootNavigatorKey,
+        //                   builder: (context, state) {
+        //                     var monitoringId =
+        //                         state.pathParameters['monitoringId'];
+        //                     return ObservationMonitoringRecordView(
+        //                       monitoringRecordId: monitoringId!,
+        //                     );
+        //                   },
+        //                 ),
+        //               ],
+        //             ),
+        //           ],
+        //         ),
+        //       ],
+        //     ),
+        //     GoRoute(
+        //       path: '/profile',
+        //       pageBuilder: (context, state) => CustomTransitionPage<void>(
+        //         key: state.pageKey,
+        //         child: const ProfileView(),
+        //         transitionsBuilder:
+        //             (context, animation, secondaryAnimation, child) {
+        //           return SlideTransition(
+        //             position: Tween<Offset>(
+        //               begin: const Offset(1, 0),
+        //               end: Offset.zero,
+        //             ).animate(animation),
+        //             child: child,
+        //           );
+        //         },
+        //       ),
+        //       routes: [
+        //         GoRoute(
+        //           path: 'form',
+        //           parentNavigatorKey: _rootNavigatorKey,
+        //           builder: (context, state) {
+        //             return const ProfileFormView();
+        //           },
+        //         ),
+        //         GoRoute(
+        //           path: 'password',
+        //           parentNavigatorKey: _rootNavigatorKey,
+        //           builder: (context, state) {
+        //             return const ChangePasswordView();
+        //           },
+        //         ),
+        //       ],
+        //     ),
+        //   ],
+        // )
       ],
     );
   }

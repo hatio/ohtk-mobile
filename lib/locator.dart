@@ -37,6 +37,8 @@ import 'package:podd_app/ui/home/all_reports_view_model.dart';
 import 'package:podd_app/ui/home/my_reports_view_model.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+// vbs
+import 'package:podd_app/services/vbs_audio_service.dart';
 
 final locator = GetIt.instance;
 
@@ -79,6 +81,14 @@ StreamController<String> setupLocator(String environment) {
   }
   controller.add("init config service");
   locator.registerSingleton<ConfigService>(ConfigService());
+
+  // vbs
+  if (locator.isRegistered<IVbsAudioService>()) {
+    locator.unregister<IVbsAudioService>();
+  }
+  locator.registerSingletonAsync<IVbsAudioService>(() async {
+    return VbsAudioService();
+  });
 
   if (locator.isRegistered<ISecureStorageService>()) {
     locator.unregister<ISecureStorageService>();
