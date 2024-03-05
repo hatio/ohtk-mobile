@@ -11,8 +11,9 @@ import 'package:uuid/uuid.dart';
 // package to record audio
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
-import 'package:fftea/fftea.dart';
+import 'package:iirjdart/butterworth.dart';
 import 'dart:typed_data';
+// import 'package:fftea/fftea.dart';
 // package to play audio
 import 'package:audioplayers/audioplayers.dart';
 
@@ -33,9 +34,9 @@ class RecordViewModel extends BaseViewModel {
   final player = AudioPlayer();
 
   late Directory directory;
-  String recordingDir = "/recording/";
-  String customPath = '';
-  String extStr = '.m4a';
+  String recordingDir = "recording";
+  // String customPath = '';
+  String extStr = '.flac';
 
   RecordViewModel() {
     init();
@@ -46,40 +47,35 @@ class RecordViewModel extends BaseViewModel {
   }
 
 
-  Future printPath() async {
-    var uuid = const Uuid().v4();
-    const id = "test";
-    const extStr = ".w4a";
-    final directory = await getApplicationDocumentsDirectory(); 
-    final f = await File('$directory/recordings/$uuid/$id$extStr').create(recursive: true);
-    print(f.toString());
-  }
-
-
   Future start() async {
     setBusy(true);
     
     try {
       // Check and request permission
       if (await _audioRecorder.hasPermission()) {
+        
         // We don't do anything with this but printing
         final isSupported = await _audioRecorder.isEncoderSupported(
-          AudioEncoder.aacLc,
+          AudioEncoder.flac,
         );
-        print('${AudioEncoder.aacLc.name} supported: $isSupported');
+        print('${AudioEncoder.flac.name} supported: $isSupported');
+        final mics = await _audioRecorder.listInputDevices();
+        print(mics);
 
-        final devs = await _audioRecorder.listInputDevices();
-        print(devs);
-
-        customPath = directory.path +
-          recordingDir +
-          DateTime.now().millisecondsSinceEpoch.toString() +
-          extStr ;
+        File customPath = await fileService.createLocalFileInAppDirectory(
+          recordingDir, DateTime.now().millisecondsSinceEpoch.toString(), extStr
+        );
         print(customPath);
 
-        await File(customPath).create(recursive: true);
-        
-        await _audioRecorder.start(const RecordConfig(), path: customPath);
+        // customPath = directory.path +
+        //   recordingDir +
+        //   DateTime.now().millisecondsSinceEpoch.toString() +
+        //   extStr ;
+        // print(customPath);
+
+        // await File(customPath).create(recursive: true);
+
+        // await _audioRecorder.start(const RecordConfig(encoder: AudioEncoder.flac), path: customPath.path);
         stopwatch.start();
 
         isRecording = await _audioRecorder.isRecording();
@@ -96,21 +92,21 @@ class RecordViewModel extends BaseViewModel {
     setBusy(true);
 
     stopwatch.stop();    
-    await _audioRecorder.stop();
+    // await _audioRecorder.stop();
     isRecording = false;
 
     
-    print('Miliseconds recorded...');
-    print(stopwatch.elapsedMilliseconds); // Likely > 0.
+    // print('Miliseconds recorded...');
+    // print(stopwatch.elapsedMilliseconds); // Likely > 0.
 
-    var uuid = const Uuid().v4();
-    var originalFile = await File(customPath);
-    var bytes = await originalFile.readAsBytes();
-    // convert to 16-bit per sample
-    var listInt = bytes.buffer.asUint16List();
-    List<double> listFloat = listInt.map((i) => i.toDouble()).toList();
-    print(listFloat);
-    print(listFloat.length);
+    // var uuid = const Uuid().v4();
+    // var originalFile = await File(customPath);
+    // var bytes = await originalFile.readAsBytes();
+    // // convert to 16-bit per sample
+    // var listInt = bytes.buffer.asUint16List();
+    // List<double> listFloat = listInt.map((i) => i.toDouble()).toList();
+    // print(listFloat);
+    // print(listFloat.length);
 
 
     // // run STFT .......
@@ -171,7 +167,7 @@ class RecordViewModel extends BaseViewModel {
     // List<int> listFiltered = listFloat.map((i) => i.toInt()).toList();       
     
     // // play recording
-    await player.play(BytesSource(bytes));
+    // await player.play(BytesSource(bytes));
     // await player.play(BytesSource(Uint8List.view(Uint16List.fromList(listFiltered).buffer)));
     // await player.play(DeviceFileSource(customPath));
     

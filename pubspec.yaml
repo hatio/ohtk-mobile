@@ -51,8 +51,9 @@ dependencies:
   audio_video_progress_bar: ^1.0.1
   # for `vbs` project
   record: ^5.0.4
-  fftea: ^1.5.0
   audioplayers: ^5.2.1
+  iirjdart: ^0.1.0
+  # fftea: ^1.5.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

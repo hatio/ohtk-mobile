@@ -46,12 +46,6 @@ class RecordView extends StatelessWidget {
                   primary: const Color.fromARGB(255, 235, 12, 12), // Background color
                   )),
 
-              ElevatedButton(
-                onPressed: () {
-                  model.printPath();
-                },
-                child: const Text('Print path')),
-
               SizedBox(
                 height: 200,
                 child: FutureBuilder(
